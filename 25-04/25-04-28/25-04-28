@@ -1,0 +1,72 @@
+NOTE : Hallucinations are a common symptom when small-capacity models like TinyLlama 
+are fine-tuned on a narrow corpus without additional grounding
+
+1. Limited Model Capacity & Coverage
+ • TinyLlama’s size
+      - With only a few hundred million parameters, TinyLlama has a very limited “memory.” 
+      - It often over-generalizes from sparse examples, inventing plausible-sounding but incorrect details.
+• Sparse or uneven data in your CLI docs
+
+
+2. If certain commands, flags, or error-cases appear only once (or in odd formats), 
+the model may never learn them reliably.
+
+- Compare a few “Q/A” pairs from your fine-tuning dataset with how you’re prompting at inference.
+
+- Try feeding longer context windows (if supported) or chunk-and-retrieve.
+
+3. Re-generate some answers with temperature=0.0 (greedy) or 0.2, and compare.
+
+  - Experiment with deterministic decoding (beam search) for a few test questions.
+  - 
+
+4. Hyperparameter & Decoding Choices
+
+
+
+Problems - 
+1. small model, let's keep this as of now and work on preprocessing. (Bcoz, it is just one time cost)
+2. handling text/diagrams in docx -
+    # TEXT 
+    - using larger doc(80 pages) , bcoz smaller text doesn't provide much context/details to tinyllama,
+                                    with better data we can prohibit hallucinations and incorrect output
+                                    by 
+
+    # DIAGRAM
+    Parses  SDAccel .docx into structured text blocks (headings, paragraphs, tables) with unstructured(library)
+   
+    Extracts embedded diagrams as images
+
+    Captions each diagram with BLIP2 (higher-quality than base BLIP) : tried smaller model, but not good enough
+
+    Groups each diagram with the nearest surrounding text (so your fine-tuning data knows “Diagram + explanation”)
+
+        --- 
+        LARGER MODEL I am using for Captioning - 
+
+        # # 6. Prepare BLIP2 for image captioning
+        # processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+        # model_cap  = Blip2ForConditionalGeneration.from_pretrained(
+        #     "Salesforce/blip2-opt-2.7b",
+        #     torch_dtype=torch.float16,
+        #     device_map="auto",
+        # )
+
+        - resulting in 
+
+    #TABLE -
+    partition_docx library
+
+For enhancing - 
+"distilgpt2"
+
+by using the prompt - 
+def enhance_text(text: str) -> str:
+    prompt = (
+        "Below is a piece of technical documentation. "
+        "Rewrite it in clear, concise English, preserving all technical details:\n\n"
+        f"{text}\n\nImproved version:"
+    )
+
+
+https://medium.com/@whyamit101/a-practical-guide-to-fine-tuning-tinyllama-7c4bd763e94e

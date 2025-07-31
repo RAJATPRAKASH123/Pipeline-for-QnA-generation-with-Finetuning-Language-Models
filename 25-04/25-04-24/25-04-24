@@ -1,0 +1,345 @@
+A brief summary of what you accomplished yesterday
+- Studied around RAG, and implemented it.
+
+What you plan to work on today
+
+- As discussed with Manoj Sir, I will be taking a tiny model & will fine-tune them for CLI docs.
+- Similaryly, I will prune and fine-tune Big models.
+
+Any discussions you'd like to have today
+
+Any bottlenecks or blockers you're facing
+
+Any issues that need attention
+
+How today’s work contributes to your overall goals
+
+
+
+[[[11PM-12PM]]] IS Class
+
+Today's steps : 
+1. Use RAG(Gemini) to get top 10 questions.
+2. Finetuning using tinyllama
+
+
+[Tokenization-Strategies] :
+- first step - tokenize streaming words.
+- in or before transformer (the input that we give are sequence of tokens)
+    before this, people use to delimetere (, _, ... ) to tokenize
+- then people realized, that these delimeters are not 
+
+Three tokenization strategies - 
+[Word level tokenization is not good enough, because if you think of words, with fixed set of characters,  you can think of a lot of words, 
+even Character level, tokenization is not good enough, - fixed set of characters then - there are limited set of vocabs]
+
+Sub-word Tokenization : a middle ground for word level and character based tokenization
+
+----------------------------------------------------------------------------------
+[Transformers] : 
+
+- Transformer is a type of neural network architecture, introduced in 2017 by Vaswani et al., that relies entirely on attention mechanisms—rather than recurrence (RNNs) or convolutions (CNNs)
+
+- Pretrained Transformer is simply a Transformer model that’s first trained (pretrained) on a very large “generic” corpus (like Wikipedia or a web crawl) to learn broad patterns of language, and then fine-tuned on a smaller, task-specific dataset.
+----------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+[12PM-1PM] For attention - 
+
+https://medium.com/@geetkal67/attention-networks-a-simple-way-to-understand-self-attention-f5fb363c736d
+
+1. Self-Attention
+
+- Each token (wordpiece) in the input looks at every other token to compute a weighted representation of the entire sequence.
+- Formally, for each token you compute three vectors: Query, Key, and Value.
+- Attention scores:
+- Enables modeling of long-range dependencies—every token can attend to every other token directly.
+
+2. Multi-Head Attention
+
+- Instead of doing a single attention, you split Q/K/V into multiple “heads” (subspaces), each learns different relational patterns.
+
+- Their outputs are concatenated and linearly projected back to the original dimensionality.
+
+----------------------------------------------------------------------------------
+So if you were to search for something on Youtube or Google, The text which you type in the search box is the QUERY. The results which appear as the video or article title are the KEY and the content inside them is the VALUE. So as to find the best matches the Query has to find the similarity between it and the Keys.
+
+To compute the similarity between the Query and the Key, we take the help of the Cosine Similarity method
+----------------------------------------------------------------------------------
+Cosine similarity varies from range +1 to -1, where +1 is most similar and -1 most dissimilar.
+---------------------------------------------------------------------------------
+- with textual data, we need to convert it into numbers before feeding it.
+- The embedding layer enables us to convert each word into a fixed-length vector of defined size. The  resultant vector is a dense one with real values instead of just 0s and 1s.
+- The fixed length of word vectors helps us to represent words in a better way along with reduced dimensions.
+- embedding layer works as a lookup table. The words are the keys in this table, while the dense word vectors are the values.
+---------------------------------------------------------------------------------
+[VVI] - [ How researcher solved the problem of Word Order]
+The main reason we need Position Encoding is that unlike LSTM taking one input embedding at a time sequentially, Transformers take all embedding at once. Though this helps the transformer to be much faster they lose the information related to word order. To solve this problem authors of the paper “Attention is all you need” came up with a clever idea. They used wave frequencies to capture positional information.
+---------------------------------------------------------------------------------
+Position Encoding and how sin/cos helps to get both position and meaning(value) of word
+https://datascience.stackexchange.com/questions/51065/what-is-the-positional-encoding-in-the-transformer-model
+- https://www.youtube.com/watch?v=dichIcUZfOw
+---------------------------------------------------------------------------------
+[where SELF-ATTENTION comes into the picture.]
+Well to the QUERY layer we feed our position-aware embeddings. We then make two more copies of that embedding and feed it to the KEY and VALUE layers too. This doesn’t make any sense, why are we feeding the same embedding to all three layers, right? Well, this is a place where SELF-ATTENTION comes into the picture.
+
+Then, some matrix multiplication to create attention score, etc...
+---------------------------------------------------------------------------------
+
+[Tinyllama] - https://medium.com/@researchgraph/what-is-tinyllama-23514fa53eca(required subscription)
+
+- 1.1B Llama model on 3 trillion tokens.
+- Finetuned Models on Tinyllama
+        - https://huggingface.co/models?other=base_model:finetune:TinyLlama/TinyLlama-1.1B-Chat-v1.0
+
+[FineTuning--Guide--with--huggingFace--Amazon-Sagemaker]
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+[[1PM-2PM]] 
+Unrelated tasks : College Assignment Dicussion 
+
+[INSTALLATION]
+```python
+!pip install "sagemaker>=2.140.0" "transformers==4.26.1" "datasets[s3]==2.10.1" --upgrade
+```
+[Development-Environment]
+```python
+import sagemaker.huggingface
+```
+
+[Permissions]
+```python
+import sagemaker 
+import boto3
+sess = sagemaker.Session()
+# sagemaker session bucket -> used for uploading data, models and logs
+# sagemaker will automatically create this bucket if it not exists
+sagemaker_session_bucket=None
+if sagemaker_session_bucket is None and sess is not None:
+    # set to default bucket if a bucket name is not given
+    sagemaker_session_bucket = sess.default_bucket()
+
+try:
+    role = sagemaker.get_execution_role()
+except ValueError:
+    iam = boto3.client('iam') # required in case of localhost
+    role = iam.get_role(RoleName='sagemaker_execution_role')['Role']['Arn']
+
+sess = sagemaker.Session(default_bucket=sagemaker_session_bucket)
+
+print(f"sagemaker role arn: {role}")
+print(f"sagemaker bucket: {sess.default_bucket()}")
+print(f"sagemaker session region: {sess.boto_region_name}")
+```
+
+[Preprocessing]
+- After preprocessing, the dataset will be uploaded to our sagemaker_session_bucket to be used within our training job.
+---------------------------------------------------------------------------------
+[[2PM-2:30PM]] Lunch
+---------------------------------------------------------------------------------
+[[2:30PM-3:00PM]]
+
+[Tokenization] 
+from datasets import load_dataset
+from transformers import AutoTokenizer
+
+# tokenizer used in preprocessing
+tokenizer_name = 'distilbert-base-uncased'
+
+# dataset used
+dataset_name = 'imdb'
+
+# s3 key prefix for the data
+s3_prefix = 'samples/datasets/imdb'
+---------------------------------------------------------------------------------
+# load dataset
+dataset = load_dataset(dataset_name)
+
+# download tokenizer
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
+# tokenizer helper function
+def tokenize(batch):
+    return tokenizer(batch['text'], padding='max_length', truncation=True)
+
+# load dataset
+train_dataset, test_dataset = load_dataset('imdb', split=['train', 'test'])
+test_dataset = test_dataset.shuffle().select(range(10000)) # smaller the size for test dataset to 10k 
+
+
+# tokenize dataset
+train_dataset = train_dataset.map(tokenize, batched=True)
+test_dataset = test_dataset.map(tokenize, batched=True)
+
+# set format for pytorch
+train_dataset =  train_dataset.rename_column("label", "labels")
+train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+test_dataset = test_dataset.rename_column("label", "labels")
+test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+---------------------------------------------------------------------------------
+
+[Encoder_&_Decoder_Stacks]
+Encoder: stacks of these sub-blocks; encodes an input sequence into rich representations.
+
+Decoder: similar, but each layer has an extra attention over the encoder output (for tasks like translation).
+
+
+
+https://colab.research.google.com/drive/19_pzyN_i87D5hJ3mdpX4LXBt3Tyqw9zy#scrollTo=mX9eLdHdGtKz
+
+[3PM-4PM] 
+- Found a thebloke/tinyllama-1.1B-Chat-v1.0.Q8_0.gguf model, converted to hf, 
+    and finetuned it on cli
+
+But, it didn't work out, it had some issues mentioned in comments,
+
+so, switched to different model : MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+
+Now, finetuning run kraa phir model save nhi huaa for some reason.
+
+Again, folder create krke run kraa h, n meanwhile model performance better krne k liye study kr rha abhi.
+
+
+* Studied concepts -
+
+* Choose a model, tried to train but discarded due to lack of support - thebloke/tinyllama-1.1B-Chat-v1.0.Q8_0.gguf 
+
+* Chose another model - "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+
+* Struggled with dependencies, cpu gpu support and certain concepts, then finally able to Fine Tune a model.
+
+
+
+ FINETUNING
+----------------------------------FINETUNING----------------------------------------------
+
+Prompt: Q: What is local memory in OpenCL?
+A:
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:679: UserWarning: `num_beams` is set to 1. However, `early_stopping` is set to `True` -- this flag is only used in beam-based generation modes. You should set `num_beams>1` or unset `early_stopping`.
+  warnings.warn(
+Response: Q: What is local memory in OpenCL?
+A: Local memory is a special type of memory that is accessible only within the current thread of execution. It is used to store temporary data that is needed for the current computation. Local memory is typically used for data that is not shared across threads, such as variables that are used only within a single thread.
+--------------------------------------------------------------------------------
+Prompt: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A:
+Response: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A: Here's a simple example of how to compile an OpenCL kernel for Xilinx SDAccel:
+
+1. Create a new OpenCL program in your preferred programming language.
+2. Add the necessary OpenCL headers and libraries to your program.
+3. Define the OpenCL kernel function in your program.
+4. Compile your program using the OpenCL compiler provided by Xilinx SDAccel.
+5. Load the compiled OpenCL kernel into the Xilinx SDAccel device.
+---------------------------------------- 
+
+
+--------------------------- Using RAG ---------------------------
+
+    {
+        "Query": "How do I compile an OpenCL kernel for Xilinx SDAccel?",
+        "Answer": "You compile an OpenCL kernel using the Xilinx OpenCL Compiler (xocc)."
+    },
+    {
+        "Query": "What is local memory in OpenCL?",
+        "Answer": """Local memory in OpenCL is a region of memory that is only accessible to the OpenCL device.  The host processor cannot see or control operations in this memory space.  It allows read and write operations by work items within the same compute unit and is typically used to store and share data among multiple work items.  In FPGAs, local memory is implemented using block RAM elements within the FPGA fabric."""
+    }
+
+--------------------------- Using TinyLLM ---------------------------
+
+What is local memory in OpenCL?
+
+OpenCL is a programming model that provides data transmission among multiple processors executing on heterogeneous devices, including graphics processors (GPUs) and CPUs. The data used in execution of OpenCL algorithms is stored and transmitted in parallel in memory. A single message is transmitted through the data exchange pipeline between these devices. Local memory is a special kind of memory in OpenCL that is used only for inter-device communication.
+
+In OpenCL, local memory refers to a system-defined or device-defined buffer that is physically located (i.e., residing on the local device) but is not shared with other devices in the same context. It supports simple exchange of data, including intra- and inter-device-communication transactions between OpenCL devices. In OpenCL, the size of a local buffer dimension is 1, but the buffer instance can refer to more than one buffer at the same time, so the maximum buffer dimension is expected to be a power of two.
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+
+<!-- epoch - 5 -->
+Prompt: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A:
+Response: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A: Here's a simple example of how to compile an OpenCL kernel for Xilinx SDAccel:
+
+1. Create a new OpenCL program in your preferred programming language.
+2. Add the necessary OpenCL headers and libraries to your program.
+3. Define the OpenCL kernel function in your program.
+4. Compile your program using the OpenCL compiler provided by Xilinx SDAccel.
+5. Load the compiled OpenCL kernel into the Xilinx SDAccel device.
+---------------------------------------- 
+
+<!-- epoch - 12 -->
+
+Prompt: Q: What is local memory in OpenCL?
+A:
+Response: Q: What is local memory in OpenCL?
+A: Local memory is a special type of memory that is accessible only within the current thread of execution. It is used to store temporary data that is needed for the current computation. Local memory is typically used for data that is not shared across threads, such as variables that are used only within a single thread.
+------------------------------------------------------------
+Prompt: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A:
+Response: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A: Here's a simple example of how to compile an OpenCL kernel for Xilinx SDAccel:
+
+1. Create a new project in Xilinx Vivado HLS.
+2. Add a new module to your project.
+3. In the module's top level file, add the following code:
+
+```
+#include "xil_types.h"
+#include "xil_io.h"
+#include "xil_exception.h"
+#include
+-----------
+
+<!-- epoch-16 -->
+
+Prompt: Q: What is local memory in OpenCL?
+A:
+Response: Q: What is local memory in OpenCL?
+A: Local memory is a special type of memory that is accessible only within the current OpenCL context. It is used to store temporary data that is not shared with other OpenCL contexts.
+------------------------------------------------------------
+Prompt: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A:
+Response: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A: To compile an OpenCL kernel for Xilinx SDAccel, you need to follow these steps:
+
+1. Download the OpenCL kernel source code from the OpenCL website.
+2. Extract the source code to a directory of your choice.
+3. Open the directory in a text editor.
+4. Find the file named "kernel.cl" in the directory.
+5. Replace the contents of the file with the following code:
+
+```
+#include <CL/sycl
+------------------------------------------------------------
+
+
+
+<!-- epcoh-18 -->
+
+Prompt: Q: What is local memory in OpenCL?
+A:
+Response: Q: What is local memory in OpenCL?
+A: Local memory is a special type of memory that is accessible only within the current OpenCL context. It is used to store temporary data that is not shared with other OpenCL contexts.
+------------------------------------------------------------
+Prompt: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A:
+Response: Q: How do I compile an OpenCL kernel for Xilinx SDAccel?
+A: To compile an OpenCL kernel for Xilinx SDAccel, you need to follow these steps:
+
+1. Download the OpenCL kernel source code from the OpenCL website.
+2. Extract the source code to a directory of your choice.
+3. Open the directory in a text editor.
+4. Find the file named "kernel.cl" in the directory.
+5. Replace the contents of the file with the following code:
+
+```
+#include <CL/sycl
+------------------------------------------------------------
+
+
+hallucinations + inaccuracies + repeatition
+
+

@@ -1,0 +1,28 @@
+## Summary : https://labelbox.com/guides/model-distillation/
+
+Model Distillation : [a.k.a. Knowledge Distillation]
+-  involves transferring knowledge from a large model to a smaller one 
+    that can be deployed to production
+- bridges the gap between computational demand and the cost of enormous models in the training lab
+
+## Why Model Distillation ?
+
+-- ith model distillation, the deployment and real-world application of AI models can be realized.
+--  An inference-optimized model that keeps all the qualities and behaviors of the larger training model
+ can be achieved. Using the teacher-student architecture, 
+ this supervised learning approach ensures knowledge transfer,
+
+## How Does the Model Distillation Process Work?
+
+
+## Teacher Model Training
+starts with a pre-trained model
+- involves selecting, fine-tuning, and/or training an expensive AI model
+-  with billions of parameters and gigabytes of data in a lab environment. 
+
+- teacher model would be the base model in this case, serving as the 
+- knowledgeable expert system from which the knowledge is distilled. 
+
+- The student model would then inherit the behaviors and functionalities 
+- of this teacher model during knowledge transfer.  
+

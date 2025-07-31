@@ -1,0 +1,44 @@
+Learned around Fine Tuning - 
+
+
+FineTuning LLM Models --> 
+
+1. Quantization : 
+    i) Full Precision/ Half Precision -- > Data --> Weight and Parameter
+    ii) Calibration --> Model Quantization --> Problems
+    iii) Modes of Quantization |-> Post Training Quantization 
+                               |-> Quantization Aware Training
+
+Quantization : Conversion of Higher Memory Format to a Lower Memory Format.
+
+1. Post Training Quantization -
+
+
+
+2. Quantization Aware Technique -
+
+trained Model --> Quantization --> FineTuning   ---> then we create Quantized Model
+                                        ^
+                                        |
+                                        |
+                                    Training Data
+
+
+overfitting - https://stackoverflow.com/questions/53942612/why-too-many-epochs-will-cause-overfitting  
+
+finetuning(LoRA + QLoRA in Colab) - https://www.datacamp.com/tutorial/fine-tuning-llama-2?utm_source=chatgpt.com
+
+
+
+Fine-tuning is about turning general-purpose models and turning them into specialized models. It bridges the gap between generic pre-trained models and the unique requirements of specific applications, ensuring that the language model aligns closely with human expectations. Think of OpenAI's GPT-3, a state-of-the-art large language model designed for a broad range of natural language processing (NLP) tasks. Suppose a healthcare organization wants to use GPT-3 to assist doctors in generating patient reports from textual notes. While GPT-3 can understand and create general text, it might not be optimized for intricate medical terms and specific healthcare jargon.
+
+To enhance its performance for this specialized role, the organization fine-tunes GPT-3 on a dataset filled with medical reports and patient notes. It might use tools like SuperAnnotate's LLM custom editor to build its own model with the desired interface. Through this process, the model becomes more familiar with medical terminologies, the nuances of clinical language, and typical report structures. After fine-tuning, GPT-3 is primed to assist doctors in generating accurate and coherent patient reports, demonstrating its adaptability for specific tasks.
+
+<!-- Update -  -->
+
+Hi Sir, Good Morning. Yesterday I got a really good idea of what is Fine Tuning and how it works, usage and difference between RAG and Fine Tuning. 
+
+Further , I studied about LoRA and qLoRA(peeked into their research paper, openai - cookbook as well as got to know - "how quantization reduces memory and two ways of doing it", ) and  tried to train a Q-LoRA model on the News dataset). 
+
+I gathered a few good resources(attached notes) and took a high level overview around other concepts like - 
+"How to call functions with chat models",
